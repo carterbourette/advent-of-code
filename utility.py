@@ -2,20 +2,24 @@ from collections import namedtuple
 import sys, inspect
 
 args = sys.argv
+TEST_FLAG = '--test' in args
 
-def inputs(parse=lambda x : x):
+def inputs(parse=lambda x : x, pre_process='\n'):
     day = args[0].split('/')[-2]
 
-    with open(f'{day}/input.txt') as fp:
-        return [ parse(line.strip()) for line in fp ]
+    file = f'{day}/input.txt' if not TEST_FLAG else f'{day}/test.txt'
+
+    with open(file) as fp:
+        contents = fp.read().split(pre_process)
+        return [ parse(line) for line in contents ]
 
 
 def log(*args):
     print(*args)
 
 
-def solution(d={}):
-    return namedtuple('Solution', d.keys())(**d) 
+def solution(d={}, test=None):
+    return namedtuple('Solution', d.keys())(**d), test
 
 
 def cli():
@@ -35,6 +39,9 @@ def cli():
             log(name, 'not found in module.')
             return
         
-        retval = function()
+        retval, test = function()
         if retval:
             log(f'{name}:', retval)
+
+            if TEST_FLAG and test != None:
+                assert retval[0] == test, f'Expected `{test}`, got `{retval[0]}`'
